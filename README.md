@@ -1,5 +1,4 @@
 # prospace-app
 prospace coding test app
 
-I'm still developing this app to handle improper input and various test cases.
-In the mean time, the app works properly for similar input as in file JPG I have attached.
+This is a console app, it takes input from the text file named "test-input.txt" which is located in the root folder

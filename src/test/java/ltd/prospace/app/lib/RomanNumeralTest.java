@@ -8,7 +8,8 @@ class RomanNumeralTest {
 
     @Test
     void romanToIntTest() {
-        assertEquals(3999, RomanNumeral.romanToInt("MMMCMXCIX"));
+        assertThrows(IllegalArgumentException.class, () -> RomanNumeral.romanToInt("MMMM"));
+        assertEquals(1434, RomanNumeral.romanToInt("MCDXXXIV"));
     }
 
     @Test

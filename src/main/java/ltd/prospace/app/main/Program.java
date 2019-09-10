@@ -2,6 +2,9 @@ package ltd.prospace.app.main;
 
 import ltd.prospace.app.lib.RomanNumeral;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 
 public class Program {
@@ -11,73 +14,79 @@ public class Program {
     private static List<String> answers = new ArrayList<>();
 
     public static void main(String[] args) {
-        Scanner in = new Scanner(System.in);
-        input1(in);
-        input2(in);
-        input3(in);
+        String filePath = System.getProperty("user.dir") + "\\test-input.txt";
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader(filePath));
+            String line = reader.readLine();
+            for (int i = 0; i < 3; i++) {
+                while (true) {
+                    if (i == 0) {
+                        input1(line);
+                    } else if (i == 1) {
+                        input2(line);
+                    } else {
+                        input3(line);
+                    }
+                    line = reader.readLine();
+                    if (line == null || line.equals("~")) {
+                        line = reader.readLine();
+                        break;
+                    }
+                }
+            }
+            reader.close();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
 
         printAnswers(answers);
     }
 
-    private static void input1(Scanner in) {
-        char[] romanDigits = {'I', 'V', 'X', 'L', 'C', 'D', 'M'};
-        System.out.println("Input 1:");
-        for (int i = 0; i < romanDigits.length; i++) {
-            System.out.print(romanDigits[i] + " = ");
-            String input = in.nextLine();
-            while (input.contains(" ")) {
-                System.out.print("forbidden, " + romanDigits[i] + " = ");
-                input = in.nextLine();
-            }
-            intergalacticNumberMap.put(input, romanDigits[i]);
+    private static void input1(String line) {
+        System.out.println(line);
+        String[] split = line.split(" is ");
+        String split0 = split[0];
+        if (split0.contains(" ")) {
+            throw new IllegalArgumentException("no space allowed for intergalactic numeric digit!");
         }
+        String split1 = split[1];
+        if (split1.length() > 1 || (!split1.equals("I") && !split1.equals("V") && !split1.equals("X") && !split1.equals("L")
+                && !split1.equals("C") && !split1.equals("D") && !split1.equals("M"))) {
+            throw new IllegalArgumentException(split1 + " is invalid Roman Numeric Digit!");
+        }
+        intergalacticNumberMap.put(split0, split1.charAt(0));
     }
 
-    private static void input2(Scanner in) {
-        System.out.println("Input 2:");
-        while (true) {
-            String input = in.nextLine();
-            final String[] splitStrings = input.split(" is ");
-            String[] arrayOfStringBeforeIs = splitStrings[0].split(" ");
-            String metal = arrayOfStringBeforeIs[arrayOfStringBeforeIs.length - 1];
-            int num = Integer.parseInt(splitStrings[1].split(" ")[0]);
-            inputMetalPrices(metal, num, intergalacticToRoman(arrayOfStringBeforeIs, false));
-            askContinue();
-            if (!in.nextLine().equalsIgnoreCase("Y")) {
-                break;
-            }
-        }
+    private static void input2(String line) {
+        System.out.println(line);
+        final String[] split = line.split(" is ");
+        String[] split0 = split[0].split(" ");
+        String metal = split0[split0.length - 1];
+        int num = Integer.parseInt(split[1].split(" ")[0]);
+        inputMetalPrices(metal, num, intergalacticToRoman(split0, false));
     }
 
-    private static void input3(Scanner in) {
-        System.out.println("Input 3:");
-        while (true) {
-            String input = in.nextLine();
-            try {
-                String intergalacticWords = input.split(" is ")[1].split("\\?")[0];
-                String[] intergalacticWordsArr = intergalacticWords.split(" ");
-                if (input.toUpperCase().contains("HOW MUCH")) {
-                    int romanToInt = RomanNumeral.romanToInt(intergalacticToRoman(intergalacticWordsArr, true));
-                    answers.add(intergalacticWords + " is " + romanToInt);
-                } else if (input.toUpperCase().contains("HOW MANY CREDITS")) {
-                    String metal = intergalacticWordsArr[intergalacticWordsArr.length - 1];
-                    int romanToInt = RomanNumeral.romanToInt(intergalacticToRoman(intergalacticWordsArr, false));
-                    double price = romanToInt * metalPrices.get(metal);
-                    answers.add(intergalacticWords + " is " + price + " credits");
-                } else {
-                    answers.add("I have no idea what you are talking about");
-                }
-            } catch (ArrayIndexOutOfBoundsException e) {
-                System.out.println(e.getMessage());
-                answers.add("I have no idea what you are talking about");
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
+    private static void input3(String line) {
+        System.out.println(line);
+        try {
+            String intergalacticWords = line.split(" is ")[1].split("\\?")[0];
+            String[] intergalacticWordsArr = intergalacticWords.split(" ");
+            if (line.toUpperCase().contains("HOW MUCH")) {
+                int romanToInt = RomanNumeral.romanToInt(intergalacticToRoman(intergalacticWordsArr, true));
+                answers.add(intergalacticWords + " is " + romanToInt);
+            } else if (line.toUpperCase().contains("HOW MANY CREDITS")) {
+                String metal = intergalacticWordsArr[intergalacticWordsArr.length - 1];
+                int romanToInt = RomanNumeral.romanToInt(intergalacticToRoman(intergalacticWordsArr, false));
+                double price = romanToInt * metalPrices.get(metal);
+                answers.add(intergalacticWords + " is " + price + " credits");
+            } else {
                 answers.add("I have no idea what you are talking about");
             }
-            askContinue();
-            if (!in.nextLine().equalsIgnoreCase("Y")) {
-                break;
-            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            answers.add("I have no idea what you are talking about");
+        } catch (IllegalArgumentException e) {
+            answers.add("invalid roman number");
         }
     }
 
@@ -107,13 +116,10 @@ public class Program {
         return romanNumber;
     }
 
-    private static void askContinue() {
-        System.out.println("Continue (Y/N)? ");
-    }
-
-    private static void printAnswers(List<String> arr) {
-        for (int i = 0; i < arr.size(); i++) {
-            System.out.println(arr.get(i));
+    private static void printAnswers(List<String> list) {
+        System.out.println("\nanswers");
+        for (String str : list) {
+            System.out.println(str);
         }
     }
 }
